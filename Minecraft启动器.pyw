@@ -140,11 +140,11 @@ class LaunchHistory:
             ("💥 崩溃次数", f"{s['crash_count']} 次"),
         ]
         for i, (label, value) in enumerate(cards):
-            card = tk.Frame(top, bg="#f0f0f5", padx=12, pady=8)
+            card = tk.Frame(top, bg="#eef2f8", padx=14, pady=10)
             card.grid(row=0, column=i, padx=4, sticky="nsew")
-            tk.Label(card, text=label, bg="#f0f0f5", fg="#666").pack()
-            tk.Label(card, text=value, bg="#f0f0f5",
-                     font=("Microsoft YaHei", 12, "bold")).pack()
+            tk.Label(card, text=label, bg="#eef2f8", fg="#5c6b7a", font=("Microsoft YaHei UI", 9)).pack()
+            tk.Label(card, text=value, bg="#eef2f8",
+                     font=("Microsoft YaHei UI", 13, "bold"), fg="#1d4ed8").pack()
             top.grid_columnconfigure(i, weight=1)
 
                
@@ -646,7 +646,7 @@ class AnimatedGradientBanner(tk.Canvas):
                  user_color="#ffffff",
                  **kwargs):
         super().__init__(parent, height=height, highlightthickness=0,
-                         bg="#1e1e2e", **kwargs)
+                         bg="#0d1117", **kwargs)
 
         self._fallback_callback = fallback_callback
         self.banner_height = height
@@ -668,14 +668,14 @@ class AnimatedGradientBanner(tk.Canvas):
 
                       
         self.title_id = self.create_text(
-            26, height / 2 - 11, anchor="w",
+            28, height / 2 - 14, anchor="w",
             text=title, fill=title_color,
-            font=("Microsoft YaHei UI", 20, "bold"),
+            font=("Microsoft YaHei UI", 22, "bold"),
         )
         self.subtitle_id = None
         if subtitle:
             self.subtitle_id = self.create_text(
-                28, height / 2 + 17, anchor="w",
+                30, height / 2 + 18, anchor="w",
                 text=subtitle, fill=subtitle_color,
                 font=("Microsoft YaHei UI", 10),
             )
@@ -2665,9 +2665,9 @@ class MinecraftLauncher:
         tree_frame.grid_columnconfigure(0, weight=1)
 
         _p = getattr(self, 'theme_palette', None) or {}
-        _row_bg = _p.get('surface_alt', '#f5f5f5')
+        _row_bg = _p.get('surface_alt', '#eef2f8')
         _row_bg2 = _p.get('surface', '#ffffff')
-        _row_fg = _p.get('fg', '#000000')
+        _row_fg = _p.get('fg', '#1b2330')
         tree.tag_configure("oddrow", background=_row_bg, foreground=_row_fg)
         tree.tag_configure("evenrow", background=_row_bg2, foreground=_row_fg)
         if not hasattr(self, '_theme_trees'):
@@ -4027,7 +4027,7 @@ class MinecraftLauncher:
 
     def _show_version_dialog(self, versions, mod_title):
         _p = getattr(self, 'theme_palette', None) or {}
-        _bg = _p.get('bg', '#f3f6fa')
+        _bg = _p.get('bg', '#f0f3f7')
         _fg = _p.get('fg', '#18222e')
         _entry = _p.get('entry', '#ffffff')
         _sel = _p.get('select', '#dce8f7')
@@ -4391,7 +4391,7 @@ class MinecraftLauncher:
         ]
         for i, (k, v) in enumerate(rows):
             tk.Label(body, text=k, font=("Microsoft YaHei", 10),
-                    fg="#666", anchor="w").grid(row=i, column=0, sticky="w", pady=3)
+                    fg="#5c6b7a", anchor="w").grid(row=i, column=0, sticky="w", pady=3)
             tk.Label(body, text=v, font=("Microsoft YaHei", 10, "bold"),
                     anchor="w", wraplength=380).grid(row=i, column=1, sticky="w", pady=3, padx=10)
         body.grid_columnconfigure(1, weight=1)
@@ -4782,17 +4782,23 @@ class MinecraftLauncher:
             for tag in self.console_text.tag_names():
                 self.console_text.tag_delete(tag)
 
-            self.console_text.tag_config('log_debug', foreground='#888888')
-            self.console_text.tag_config('log_info', foreground="#020101")
-            self.console_text.tag_config('log_warning', foreground="#FBFF00")
-            self.console_text.tag_config('log_error', foreground="#FF0000")
+            _p = getattr(self, 'theme_palette', {})
+            _is_dark = getattr(self, 'theme_value', 'light') == 'dark'
+            _fg = _p.get('fg', '#1b2330')
+            _fg_muted = _p.get('secondary', '#5c6b7a')
+
+            self.console_text.tag_config('log_debug', foreground=_fg_muted)
+            self.console_text.tag_config('log_info', foreground=_fg)
+            self.console_text.tag_config('log_warning', foreground='#f59e0b' if _is_dark else '#b45309')
+            self.console_text.tag_config('log_error', foreground='#f85149' if _is_dark else '#dc2626')
             self.console_text.tag_config(
                 'log_crash',
-                foreground="#740000",
+                foreground='#ff6b6b' if _is_dark else '#991b1b',
                 underline=True,
                 font=('TkFixedFont', 10, 'bold')
             )
-            self.console_text.tag_config('log_normal', foreground='#000000')
+            self.console_text.tag_config('log_normal', foreground=_fg)
+            self.console_text.tag_config('log_success', foreground='#3fb950' if _is_dark else '#16a34a')
         except Exception as e:
             print(f"配置日志标签失败: {e}")
 
@@ -4850,13 +4856,19 @@ class MinecraftLauncher:
         
                                         
         self.root = tk.Tk()
-        self.root.title("Minecraft启动器")
+        self.root.title("Minecraft 启动器")
                                                     
         if platform.system() == 'Windows':
             self.root.state('zoomed')
         else:
             self.root.attributes('-fullscreen', True)
-        self.root.minsize(800, 750)
+        self.root.minsize(900, 780)
+        # 界面半透明：应用上次保存的透明度，并同步到所有子窗口
+        try:
+            self.apply_ui_opacity()
+            self._start_ui_opacity_sync()
+        except Exception:
+            pass
         self.root.option_add('*Text.font', 'TkFixedFont')
         self.auth.ui_root = self.root
 
@@ -4915,8 +4927,8 @@ class MinecraftLauncher:
         self.offline_radio.config(variable=self.login_mode)
         self.microsoft_radio.config(variable=self.login_mode)
         
-        self.demo_mode.trace('w', self.on_demo_mode_changed)
-        self.authlib_enabled.trace('w', self.on_authlib_changed)
+        self.window_width_var.trace_add("write", self._on_window_size_change)
+        self.window_height_var.trace_add("write", self._on_window_size_change)
         
         if self.auth.is_authenticated():
             self.auth_status.set(f"已登录: {self.auth.username}")
@@ -4967,6 +4979,7 @@ class MinecraftLauncher:
             'render_backend': "OpenGL",
             'launcher_render_backend': "默认",
             'theme': 'light',
+            'ui_opacity': 1.0,
         }
 
         config = {}
@@ -5007,6 +5020,10 @@ class MinecraftLauncher:
         self.render_backend_value = get('render_backend')
         self.launcher_render_backend_value = get('launcher_render_backend')
         self.auto_backup_value = get('auto_backup')
+        try:
+            self.ui_opacity_value = min(1.0, max(0.30, float(config.get('ui_opacity', 1.0))))
+        except (TypeError, ValueError):
+            self.ui_opacity_value = 1.0
         if self.theme_value not in ('light', 'dark'):
             self.theme_value = 'light'
         if self.launcher_render_backend_value not in ('默认', 'OpenGL', 'Vulkan', 'DirectX 12'):
@@ -5063,6 +5080,7 @@ class MinecraftLauncher:
             'last_download_version': self.download_version_var.get() if hasattr(self, 'download_version_var') else "",
             'news_filter': self.news_type_var.get() if hasattr(self, 'news_type_var') else "all",
             'theme': self.theme_var.get() if hasattr(self, 'theme_var') else getattr(self, 'theme_value', 'light'),
+            'ui_opacity': getattr(self, 'ui_opacity_value', 1.0),
         })
         with open(self.config_file, 'w', encoding='utf-8') as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
@@ -5126,6 +5144,129 @@ class MinecraftLauncher:
         self.window_height_var.set(str(size[1]))
         self._normalize_window_size()
 
+    # ---------- 界面半透明 ----------
+    UI_OPACITY_MIN = 0.30
+    UI_OPACITY_MAX = 1.00
+
+    def _clamp_ui_opacity(self, value):
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return 1.0
+        if value > 1.0:  # 兼容滑块/输入的百分数值
+            value = value / 100.0
+        return max(self.UI_OPACITY_MIN, min(self.UI_OPACITY_MAX, value))
+
+    def _apply_alpha_to(self, widget, alpha):
+        try:
+            if getattr(widget, "_ui_alpha_applied", None) == alpha:
+                return True
+            widget.attributes('-alpha', alpha)
+            widget._ui_alpha_applied = alpha
+            return True
+        except Exception:
+            return False
+
+    def apply_ui_opacity(self):
+        """把当前透明度应用到主窗口与所有已打开的子窗口"""
+        alpha = self._clamp_ui_opacity(getattr(self, 'ui_opacity_value', 1.0))
+        self.ui_opacity_value = alpha
+        root = getattr(self, 'root', None)
+        if root is not None:
+            self._apply_alpha_to(root, alpha)
+        for win in self._all_toplevel_windows():
+            self._apply_alpha_to(win, alpha)
+        return alpha
+
+    def _all_toplevel_windows(self):
+        root = getattr(self, 'root', None)
+        found = []
+        try:
+            candidates = list(self.root.winfo_children())
+        except Exception:
+            return found
+        for widget in candidates:
+            try:
+                if isinstance(widget, tk.Toplevel) and widget.winfo_exists():
+                    found.append(widget)
+            except Exception:
+                continue
+        return found
+
+    def set_ui_opacity(self, value, save=True):
+        """设置界面半透明度（0.3~1.0），立即生效"""
+        alpha = self._clamp_ui_opacity(value)
+        if hasattr(self, 'ui_opacity_var'):
+            try:
+                if abs(float(self.ui_opacity_var.get()) - alpha) > 1e-6:
+                    self.ui_opacity_var.set(alpha)
+            except Exception:
+                self.ui_opacity_var.set(alpha)
+        self.ui_opacity_value = alpha
+        self.apply_ui_opacity()
+        if save:
+            self.schedule_save_config()
+        return alpha
+
+    def on_ui_opacity_change(self, event=None):
+        """滑块拖动时实时生效（无需松手）"""
+        try:
+            alpha = self.set_ui_opacity(self.ui_opacity_var.get(), save=True)
+        except Exception:
+            return
+        if hasattr(self, 'ui_opacity_value_label'):
+            try:
+                self.ui_opacity_value_label.config(
+                    text=f"{int(round(alpha * 100))}%{'' if alpha >= 0.999 else ' (半透明)'}"
+                )
+            except Exception:
+                pass
+        if hasattr(self, 'ui_opacity_check_var'):
+            try:
+                self.ui_opacity_check_var.set(alpha < 0.999)
+            except Exception:
+                pass
+
+    def toggle_ui_opacity(self):
+        """一键在完全不透明与半透明之间切换"""
+        current = self._clamp_ui_opacity(getattr(self, 'ui_opacity_value', 1.0))
+        target = 0.78 if current >= 0.999 else 1.0
+        self.set_ui_opacity(target)
+        if hasattr(self, 'ui_opacity_check_var'):
+            try:
+                self.ui_opacity_check_var.set(target < 0.999)
+            except Exception:
+                pass
+        self.on_ui_opacity_change()
+
+    def on_ui_opacity_toggle(self):
+        """勾选框切换：开启用默认 78%，关闭恢复 100%"""
+        try:
+            on = bool(self.ui_opacity_check_var.get())
+        except Exception:
+            on = False
+        current = self._clamp_ui_opacity(getattr(self, 'ui_opacity_value', 1.0))
+        target = 0.78 if on else 1.0
+        if not on and current >= 0.999:
+            target = 1.0
+        self.set_ui_opacity(target)
+        self.on_ui_opacity_change()
+
+    def _start_ui_opacity_sync(self):
+        """子窗口是各处临时创建的，用轻量轮询把透明度同步给新窗口"""
+        def tick():
+            try:
+                alpha = self._clamp_ui_opacity(getattr(self, 'ui_opacity_value', 1.0))
+                for win in self._all_toplevel_windows():
+                    self._apply_alpha_to(win, alpha)
+            except Exception:
+                pass
+            try:
+                self.root.after(700, tick)
+            except Exception:
+                pass
+        self.root.after(700, tick)
+
 
     def apply_theme(self, mode=None, save=True):
         """应用浅色/深色主题（ttk + Tk 默认颜色）"""
@@ -5162,47 +5303,60 @@ class MinecraftLauncher:
 
         if mode == 'dark':
             palette = {
-                'bg': '#0b0f14',
-                'fg': '#e8eef6',
-                'surface': '#141b23',
-                'surface_alt': '#1e2936',
-                'accent': '#f2b84b',
-                'accent_hover': '#ffd166',
-                'accent_fg': '#1a1408',
-                'secondary': '#93a4b8',
-                'entry': '#0f1620',
-                'select': '#2b3d52',
+                'bg': '#0d1117',
+                'fg': '#e6edf3',
+                'surface': '#161b22',
+                'surface_alt': '#1c2330',
+                'accent': '#3fb950',
+                'accent_hover': '#46d35f',
+                'accent_fg': '#0d1117',
+                'secondary': '#8b949e',
+                'entry': '#0d1117',
+                'select': '#1f6feb',
                 'select_fg': '#ffffff',
-                'border': '#263241',
-                'heading': '#f2c86b',
-                'danger': '#f07171',
-                'success': '#4fd1a1',
-                'hover': '#223041',
+                'border': '#30363d',
+                'heading': '#58a6ff',
+                'danger': '#f85149',
+                'success': '#3fb950',
+                'hover': '#1c2330',
+                'accent_secondary': '#1f6feb',
+                'accent_glow': 'rgba(63,185,80,0.15)',
+                'shadow': '#000000',
+                'card_bg': '#161b22',
+                'card_border': '#30363d',
             }
         else:
             palette = {
-                'bg': '#f3f6fa',
-                'fg': '#18222e',
+                'bg': '#f0f3f7',
+                'fg': '#1b2330',
                 'surface': '#ffffff',
-                'surface_alt': '#e8eef6',
-                'accent': '#c98a1f',
-                'accent_hover': '#b57a12',
-                'accent_fg': '#1a1408',
-                'secondary': '#64748b',
+                'surface_alt': '#eef2f8',
+                'accent': '#2d7d46',
+                'accent_hover': '#26713d',
+                'accent_fg': '#ffffff',
+                'secondary': '#5c6b7a',
                 'entry': '#ffffff',
-                'select': '#dce8f7',
-                'select_fg': '#18222e',
-                'border': '#d6dfea',
-                'heading': '#8a5a00',
-                'danger': '#c2410c',
-                'success': '#15803d',
-                'hover': '#eef3f9',
+                'select': '#dbeafe',
+                'select_fg': '#1b2330',
+                'border': '#d4dde7',
+                'heading': '#1d4ed8',
+                'danger': '#dc2626',
+                'success': '#16a34a',
+                'hover': '#eef3f8',
+                'accent_secondary': '#2563eb',
+                'accent_glow': 'rgba(45,125,70,0.10)',
+                'shadow': '#cdd5e0',
+                'card_bg': '#ffffff',
+                'card_border': '#d4dde7',
             }
         self.theme_palette = palette
         p = palette
         font_ui = ("Microsoft YaHei UI", 10)
         font_bold = ("Microsoft YaHei UI", 10, "bold")
         font_title = ("Microsoft YaHei UI", 11, "bold")
+        font_heading = ("Microsoft YaHei UI", 13, "bold")
+        font_tab = ("Microsoft YaHei UI", 10, "bold")
+        font_small = ("Microsoft YaHei UI", 9)
 
         try:
             style = ttk.Style(self.root)
@@ -5217,17 +5371,19 @@ class MinecraftLauncher:
                         lightcolor=p['border'], font=font_ui)
         style.configure('TFrame', background=p['bg'], borderwidth=0)
         style.configure('TLabelframe', background=p['bg'], foreground=p['fg'],
-                        bordercolor=p['border'], relief='solid', borderwidth=1, padding=8)
+                        bordercolor=p['border'], relief='solid', borderwidth=1, padding=10)
         style.configure('TLabelframe.Label', background=p['bg'], foreground=p['heading'],
                         font=font_bold)
         style.configure('TLabel', background=p['bg'], foreground=p['fg'], font=font_ui)
-        style.configure('Muted.TLabel', background=p['bg'], foreground=p['secondary'], font=font_ui)
+        style.configure('Muted.TLabel', background=p['bg'], foreground=p['secondary'], font=font_small)
         style.configure('Accent.TLabel', background=p['bg'], foreground=p['accent'], font=font_bold)
         style.configure('Success.TLabel', background=p['bg'], foreground=p['success'], font=font_ui)
         style.configure('Danger.TLabel', background=p['bg'], foreground=p['danger'], font=font_ui)
+        style.configure('Heading.TLabel', background=p['bg'], foreground=p['heading'], font=font_heading)
         style.configure('TButton', background=p['surface'], foreground=p['fg'],
                         bordercolor=p['border'], focuscolor=p['surface'], focusthickness=0,
-                        relief='flat', borderwidth=1, padding=(12, 6), font=font_ui)
+                        relief='flat', borderwidth=1, padding=(14, 7), font=font_ui,
+                        border_radius=6)
         style.map('TButton',
                   background=[('disabled', p['surface']), ('pressed', p['select']),
                               ('active', p['hover'])],
@@ -5235,20 +5391,27 @@ class MinecraftLauncher:
                   bordercolor=[('active', p['accent'])])
         style.configure('Accent.TButton', background=p['accent'], foreground=p['accent_fg'],
                         bordercolor=p['accent'], focuscolor=p['accent'], focusthickness=0,
-                        relief='flat', borderwidth=1, padding=(16, 7), font=font_bold)
+                        relief='flat', borderwidth=0, padding=(20, 9), font=font_bold)
         style.map('Accent.TButton',
                   background=[('disabled', p['surface_alt']), ('pressed', p['accent_hover']),
                               ('active', p['accent_hover'])],
                   foreground=[('disabled', p['secondary']), ('active', p['accent_fg'])],
                   bordercolor=[('active', p['accent_hover'])])
+        style.configure('Danger.TButton', background=p['danger'], foreground='#ffffff',
+                        bordercolor=p['danger'], focuscolor=p['danger'], focusthickness=0,
+                        relief='flat', borderwidth=0, padding=(14, 7), font=font_bold)
+        style.map('Danger.TButton',
+                  background=[('disabled', p['surface_alt']), ('pressed', p['surface_alt']),
+                              ('active', p['surface_alt'])],
+                  foreground=[('disabled', p['secondary']), ('active', '#ffffff')])
         style.configure('TEntry', fieldbackground=p['entry'], foreground=p['fg'],
                         bordercolor=p['border'], lightcolor=p['border'], darkcolor=p['border'],
-                        insertcolor=p['fg'], padding=(8, 6), relief='flat')
+                        insertcolor=p['fg'], padding=(10, 7), relief='flat', borderwidth=1)
         style.map('TEntry', bordercolor=[('focus', p['accent'])],
                   lightcolor=[('focus', p['accent'])], darkcolor=[('focus', p['accent'])])
         style.configure('TCombobox', fieldbackground=p['entry'], foreground=p['fg'],
                         background=p['surface'], bordercolor=p['border'],
-                        arrowcolor=p['fg'], padding=(8, 4), relief='flat')
+                        arrowcolor=p['fg'], padding=(10, 6), relief='flat', borderwidth=1)
         style.map('TCombobox', fieldbackground=[('readonly', p['entry'])],
                   selectbackground=[('readonly', p['select'])],
                   selectforeground=[('readonly', p['select_fg'])],
@@ -5269,30 +5432,30 @@ class MinecraftLauncher:
                   indicatorcolor=[('selected', p['accent']), ('pressed', p['accent'])],
                   indicatorforeground=[('selected', p['accent_fg'])])
         style.configure('TNotebook', background=p['bg'], borderwidth=0,
-                        tabmargins=[2, 8, 2, 0])
-        style.configure('TNotebook.Tab', background=p['surface'], foreground=p['secondary'],
-                        padding=[22, 9], borderwidth=0, font=font_bold)
+                        tabmargins=[4, 10, 4, 0])
+        style.configure('TNotebook.Tab', background=p['surface_alt'], foreground=p['secondary'],
+                        padding=[24, 11], borderwidth=0, font=font_tab)
         style.map('TNotebook.Tab',
-                  background=[('selected', p['accent']), ('active', p['surface_alt']),
+                  background=[('selected', p['accent']), ('active', p['hover']),
                               ('disabled', p['surface'])],
                   foreground=[('selected', p['accent_fg']), ('active', p['fg']),
                               ('disabled', p['secondary'])])
         style.configure('Treeview', background=p['surface'], foreground=p['fg'],
                         fieldbackground=p['surface'], bordercolor=p['border'],
-                        rowheight=28, borderwidth=0, relief='flat', font=font_ui)
-        style.configure('Treeview.Heading', background=p['surface_alt'], foreground=p['fg'],
-                        relief='flat', borderwidth=0, padding=[10, 8], font=font_bold)
+                        rowheight=30, borderwidth=0, relief='flat', font=font_ui)
+        style.configure('Treeview.Heading', background=p['surface_alt'], foreground=p['heading'],
+                        relief='flat', borderwidth=0, padding=[12, 9], font=font_bold)
         style.map('Treeview', background=[('selected', p['select'])],
                   foreground=[('selected', p['select_fg'])],
                   bordercolor=[('focus', p['accent'])])
         style.map('Treeview.Heading', background=[('active', p['hover'])])
         style.configure('TScrollbar', background=p['surface_alt'], troughcolor=p['bg'],
                         bordercolor=p['bg'], arrowcolor=p['secondary'],
-                        arrowsize=12, width=12, relief='flat')
+                        arrowsize=13, width=13, relief='flat')
         style.map('TScrollbar', background=[('active', p['accent'])])
         style.configure('TProgressbar', background=p['accent'], troughcolor=p['surface_alt'],
                         bordercolor=p['surface_alt'], lightcolor=p['accent'],
-                        darkcolor=p['accent'], thickness=12, borderwidth=0)
+                        darkcolor=p['accent'], thickness=14, borderwidth=0)
         style.configure('TSeparator', background=p['border'])
         style.configure('TScale', background=p['bg'], troughcolor=p['surface_alt'],
                         bordercolor=p['border'])
@@ -5366,7 +5529,8 @@ class MinecraftLauncher:
                                      selectforeground=p['select_fg'],
                                      highlightbackground=p['border'],
                                      highlightcolor=p['accent'],
-                                     borderwidth=0, highlightthickness=1)
+                                     borderwidth=0, highlightthickness=1,
+                                     relief='flat', padx=8, pady=6)
                 elif cls == 'Canvas':
                     widget.configure(background=p['bg'], highlightthickness=0)
                 elif cls in ('Frame', 'Labelframe'):
@@ -5374,13 +5538,13 @@ class MinecraftLauncher:
                 elif cls == 'Label':
                     widget.configure(background=p['bg'])
                     fg = str(widget.cget('foreground')).lower()
-                    if fg in ('gray', 'grey', '#666', '#666666', '#555555'):
+                    if fg in ('gray', 'grey', '#666', '#666666', '#555555', '#5c6b7a', '#8b949e', '#93a4b8', '#64748b'):
                         widget.configure(foreground=p['secondary'])
-                    elif fg in ('green', '#15803d'):
+                    elif fg in ('green', '#15803d', '#16a34a', '#3fb950', '#4fd1a1'):
                         widget.configure(foreground=p['success'])
-                    elif fg in ('blue', '#1976d2'):
-                        widget.configure(foreground=p['accent'])
-                    elif fg in ('red', '#c2410c'):
+                    elif fg in ('blue', '#1976d2', '#2563eb', '#1d4ed8', '#1f6feb'):
+                        widget.configure(foreground=p.get('accent_secondary', p['accent']))
+                    elif fg in ('red', '#c2410c', '#dc2626', '#f85149', '#f07171'):
                         widget.configure(foreground=p['danger'])
                     else:
                         widget.configure(foreground=p['fg'])
@@ -5390,6 +5554,10 @@ class MinecraftLauncher:
                 walk(child)
 
         walk(self.root)
+        try:
+            self.setup_log_tags()
+        except Exception:
+            pass
 
     def on_theme_change(self, event=None):
         """设置页触发：切换主题（支持 follow/system）"""
@@ -5415,7 +5583,7 @@ class MinecraftLauncher:
         """快速在黑/白主题间切换"""
         new_mode = 'dark' if getattr(self, 'theme_value', 'light') != 'dark' else 'light'
         if hasattr(self, 'theme_mode_var'):
-            self.theme_mode_var.set("black (黑色)" if new_mode == 'dark' else "white (白色)")
+            self.theme_mode_var.set("深色" if new_mode == 'dark' else "浅色")
         self.on_theme_change()
 
     def on_launcher_renderer_change(self, event=None):
@@ -5588,59 +5756,59 @@ class MinecraftLauncher:
                                   
         self.banner = AnimatedGradientBanner(
             self.root,
-            height=92,
-            color_left=(247, 201, 72),
-            color_right=(255, 224, 138),
+            height=110,
+            color_left=(45, 125, 70),
+            color_right=(37, 99, 148),
             title="⛏ Minecraft 启动器",
             subtitle="多版本管理 · 多账号切换 · 一键启动",
             render_backend=getattr(self, "launcher_render_backend_value", "默认"),
             log_callback=self.log,
             fallback_callback=self._on_banner_gpu_fallback,
-            title_color="#1f1a0d",
-            subtitle_color="#5a4612",
-            user_color="#1f1a0d",
-            frame_count=1,
-            fps=1,
+            title_color="#ffffff",
+            subtitle_color="#c8d6e5",
+            user_color="#ffffff",
+            frame_count=20,
+            fps=20,
         )
         self.banner.pack(fill=tk.X, side=tk.TOP)
 
                                               
-        main = ttk.Frame(self.root, padding="16")
+        main = ttk.Frame(self.root, padding=(18, 14, 18, 10))
         main.pack(fill=tk.BOTH, expand=True)
         
-        f1 = ttk.LabelFrame(main, text="游戏目录")
-        f1.pack(fill=tk.X, pady=(4, 6))
+        f1 = ttk.LabelFrame(main, text="📁 游戏目录")
+        f1.pack(fill=tk.X, pady=(2, 8))
         r1 = ttk.Frame(f1)
-        r1.pack(fill=tk.X, padx=5, pady=5)
+        r1.pack(fill=tk.X, padx=8, pady=6)
         self.dir_var = tk.StringVar(value=str(self.base_dir))
-        ttk.Entry(r1, textvariable=self.dir_var).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0,5))
-        ttk.Button(r1, text="浏览", command=self.browse_dir).pack(side=tk.LEFT)
-        ttk.Button(r1, text="打开", command=self.open_dir).pack(side=tk.LEFT, padx=2)
+        ttk.Entry(r1, textvariable=self.dir_var).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0,6))
+        ttk.Button(r1, text="📂 浏览", command=self.browse_dir).pack(side=tk.LEFT)
+        ttk.Button(r1, text="🔍 打开", command=self.open_dir).pack(side=tk.LEFT, padx=(4, 0))
         
         self.notebook = ttk.Notebook(main)
-        self.notebook.pack(fill=tk.BOTH, expand=True, pady=(8, 10))
+        self.notebook.pack(fill=tk.BOTH, expand=True, pady=(6, 8))
         
         self.download_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.download_tab, text="📥 下载")
+        self.notebook.add(self.download_tab, text="📥  下载")
         self.setup_download_tab()
         
         self.launch_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.launch_tab, text="🚀 启动")
+        self.notebook.add(self.launch_tab, text="🚀  启动")
         self.setup_launch_tab()
         
         self.auth_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.auth_tab, text="👤 账号")
+        self.notebook.add(self.auth_tab, text="👤  账号")
         self.setup_auth_tab()
 
         self.settings_tab = ttk.Frame(self.notebook)
-        self.notebook.add(self.settings_tab, text="⚙️ 设置")
+        self.notebook.add(self.settings_tab, text="⚙️  设置")
         self.setup_settings_tab()
 
                                            
-        f6 = ttk.LabelFrame(main, text="控制台")
-        f6.pack(fill=tk.X, pady=3)
+        f6 = ttk.LabelFrame(main, text="🖥️ 控制台")
+        f6.pack(fill=tk.X, pady=(6, 4))
         console_btn_frame = ttk.Frame(f6)
-        console_btn_frame.pack(fill=tk.X, padx=5, pady=5)
+        console_btn_frame.pack(fill=tk.X, padx=8, pady=6)
         ttk.Button(console_btn_frame, text="🖥️ 打开控制台窗口",
                    command=self.open_console_window).pack(side=tk.LEFT)
         ttk.Button(console_btn_frame, text="🗑️ 清空控制台",
@@ -5700,7 +5868,7 @@ class MinecraftLauncher:
         ).pack(side=tk.LEFT, padx=5)
         ttk.Label(
             r_method, text="(在「账号」页点登录时生效)",
-            foreground="gray"
+            style="Muted.TLabel"
         ).pack(side=tk.LEFT, padx=10)
 
         r_demo = ttk.Frame(f_auth)
@@ -5710,7 +5878,7 @@ class MinecraftLauncher:
             command=self.on_demo_mode_change
         )
         self.demo_check.pack(side=tk.LEFT, padx=5)
-        tk.Label(r_demo, text="(无需正版账号，限时游玩100分钟)", fg="gray").pack(side=tk.LEFT, padx=5)
+        tk.Label(r_demo, text="(无需正版账号，限时游玩100分钟)", fg="#5c6b7a").pack(side=tk.LEFT, padx=5)
 
         r_lang = ttk.Frame(f_auth)
         r_lang.pack(fill=tk.X, padx=5, pady=5)
@@ -5720,7 +5888,7 @@ class MinecraftLauncher:
             command=self.on_auto_chinese_change
         )
         self.auto_chinese_check.pack(side=tk.LEFT, padx=5)
-        tk.Label(r_lang, text="(修改 options.txt 中的 lang:zh_cn)", fg="gray").pack(side=tk.LEFT, padx=5)
+        tk.Label(r_lang, text="(修改 options.txt 中的 lang:zh_cn)", fg="#5c6b7a").pack(side=tk.LEFT, padx=5)
 
         r_backup = ttk.Frame(f_auth)
         r_backup.pack(fill=tk.X, padx=5, pady=5)
@@ -5732,20 +5900,22 @@ class MinecraftLauncher:
         ).pack(side=tk.LEFT, padx=5)
 
                             
-        f_theme = ttk.LabelFrame(tab, text="🎨 外观主题（黑 / 白）")
+        f_theme = ttk.LabelFrame(tab, text="🎨 外观主题")
         f_theme.pack(fill=tk.X, pady=5, padx=5)
         r_theme = ttk.Frame(f_theme)
         r_theme.pack(fill=tk.X, padx=5, pady=5)
         ttk.Label(r_theme, text="主题:").pack(side=tk.LEFT)
-        self.theme_mode_var = tk.StringVar(value=self.theme_value)
+        _theme_display_map_reverse = {"light": "浅色", "dark": "深色", "system": "跟随系统"}
+        self.theme_mode_var = tk.StringVar(value=_theme_display_map_reverse.get(self.theme_value, "浅色"))
         self.theme_combo = ttk.Combobox(
             r_theme, textvariable=self.theme_mode_var, state="readonly",
-            values=["follow (跟随系统)", "white (白色)", "black (黑色)"], width=18
+            values=["跟随系统", "浅色", "深色"], width=18
         )
         self.theme_combo.pack(side=tk.LEFT, padx=5)
                    
         self._theme_display_map = {
-            "follow (跟随系统)": "system", "system": "system",
+            "跟随系统": "system", "system": "system",
+            "浅色": "light", "深色": "dark",
             "white (白色)": "light", "black (黑色)": "dark",
             "light": "light", "dark": "dark",
             "white": "light", "black": "dark",
@@ -5762,6 +5932,44 @@ class MinecraftLauncher:
         ttk.Button(r_theme, text="🔄 应用", command=self.on_theme_change).pack(side=tk.LEFT, padx=5)
         ttk.Button(r_theme, text="⟳ 快速切换", command=self.toggle_theme).pack(side=tk.LEFT, padx=2)
         ttk.Label(r_theme, text="(切换后立即生效并自动保存)", foreground="gray").pack(side=tk.LEFT, padx=10)
+
+        # ---------- 界面半透明 ----------
+        f_opacity = ttk.LabelFrame(tab, text="🪟 界面半透明")
+        f_opacity.pack(fill=tk.X, pady=5, padx=5)
+        r_opacity = ttk.Frame(f_opacity)
+        r_opacity.pack(fill=tk.X, padx=5, pady=5)
+        _op_start = self._clamp_ui_opacity(getattr(self, 'ui_opacity_value', 1.0))
+        self.ui_opacity_var = tk.DoubleVar(value=_op_start)
+        self.ui_opacity_check_var = tk.BooleanVar(value=_op_start < 0.999)
+        ttk.Checkbutton(
+            r_opacity, text="开启半透明",
+            variable=self.ui_opacity_check_var,
+            command=self.on_ui_opacity_toggle
+        ).pack(side=tk.LEFT, padx=5)
+        ttk.Label(r_opacity, text="透明度:").pack(side=tk.LEFT, padx=(14, 4))
+        self.ui_opacity_scale = ttk.Scale(
+            r_opacity, from_=self.UI_OPACITY_MIN, to=self.UI_OPACITY_MAX,
+            orient=tk.HORIZONTAL, length=200,
+            variable=self.ui_opacity_var,
+            command=lambda v: self.on_ui_opacity_change()
+        )
+        self.ui_opacity_scale.pack(side=tk.LEFT, padx=4)
+        _pct = int(round(_op_start * 100))
+        self.ui_opacity_value_label = ttk.Label(
+            r_opacity,
+            text=f"{_pct}%{'' if _op_start >= 0.999 else ' (半透明)'}",
+            width=14
+        )
+        self.ui_opacity_value_label.pack(side=tk.LEFT, padx=4)
+        ttk.Button(r_opacity, text="↺ 恢复不透明",
+                   command=lambda: self.set_ui_opacity(1.0)).pack(side=tk.LEFT, padx=6)
+        r_opacity_hint = ttk.Frame(f_opacity)
+        r_opacity_hint.pack(fill=tk.X, padx=5, pady=(0, 5))
+        ttk.Label(
+            r_opacity_hint,
+            text="拖动滑块实时生效；数值越低窗口越透，最低 30%。控制台等子窗口会同步透明度，仅影响界面显示，不影响游戏。",
+            foreground="gray"
+        ).pack(side=tk.LEFT, padx=5)
 
                             
         f_authlib = ttk.LabelFrame(tab, text="🔐 外置登录 (Authlib-Injector)")
@@ -6032,23 +6240,23 @@ class MinecraftLauncher:
         self.download_notebook.pack(fill=tk.BOTH, expand=True, pady=5)
 
         self.dl_version_tab = ttk.Frame(self.download_notebook)
-        self.download_notebook.add(self.dl_version_tab, text="📦 版本")
+        self.download_notebook.add(self.dl_version_tab, text="📦  版本")
         self._setup_dl_version_tab(self.dl_version_tab)
 
         self.dl_mod_tab = ttk.Frame(self.download_notebook)
-        self.download_notebook.add(self.dl_mod_tab, text="🔧 Mod")
+        self.download_notebook.add(self.dl_mod_tab, text="🔧  Mod")
         self._setup_dl_mod_tab(self.dl_mod_tab)
 
         self.dl_shader_tab = ttk.Frame(self.download_notebook)
-        self.download_notebook.add(self.dl_shader_tab, text="✨ 光影")
+        self.download_notebook.add(self.dl_shader_tab, text="✨  光影")
         self._setup_dl_shader_tab(self.dl_shader_tab)
 
         self.dl_resourcepack_tab = ttk.Frame(self.download_notebook)
-        self.download_notebook.add(self.dl_resourcepack_tab, text="🎨 材质包")
+        self.download_notebook.add(self.dl_resourcepack_tab, text="🎨  材质包")
         self._setup_dl_resourcepack_tab(self.dl_resourcepack_tab)
 
         self.dl_datapack_tab = ttk.Frame(self.download_notebook)
-        self.download_notebook.add(self.dl_datapack_tab, text="📦 数据包")
+        self.download_notebook.add(self.dl_datapack_tab, text="📦  数据包")
         self._setup_dl_datapack_tab(self.dl_datapack_tab)
 
         self.dl_modpack_tab = ttk.Frame(self.download_notebook)
@@ -6504,11 +6712,11 @@ class MinecraftLauncher:
         self.news_text.config(yscrollcommand=news_scroll.set)
     def setup_launch_tab(self):
         tab = self.launch_tab
-        f1 = ttk.LabelFrame(tab, text="本地版本选择")
+        f1 = ttk.LabelFrame(tab, text="📦 本地版本选择")
         f1.pack(fill=tk.X, pady=5, padx=5)
         r1 = ttk.Frame(f1)
         r1.pack(fill=tk.X, padx=5, pady=5)
-        self.login_display_label = tk.Label(r1, text="👤 离线模式", fg="green")
+        self.login_display_label = tk.Label(r1, text="👤 离线模式", fg="#16a34a")
         self.login_display_label.pack(side=tk.RIGHT, padx=5)
         ttk.Label(r1, text="已安装版本:").pack(side=tk.LEFT)
         self.launch_version_var = tk.StringVar()
@@ -6520,11 +6728,11 @@ class MinecraftLauncher:
 
         self.launch_version_combo.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=5)
         ttk.Button(r1, text="🔄 刷新", command=self.refresh_local_versions).pack(side=tk.LEFT, padx=2)
-        self.local_count_label = ttk.Label(r1, text="(0 个版本)", foreground="gray")
+        self.local_count_label = ttk.Label(r1, text="(0 个版本)", style="Muted.TLabel")
         self.local_count_label.pack(side=tk.LEFT, padx=10)
 
                             
-        f4 = ttk.LabelFrame(tab, text="启动操作")
+        f4 = ttk.LabelFrame(tab, text="🎮 启动操作")
         f4.pack(fill=tk.X, pady=5, padx=5)
         r5 = ttk.Frame(f4)
         r5.pack(fill=tk.X, padx=5, pady=(5, 3))
@@ -8817,15 +9025,15 @@ class MinecraftLauncher:
         self.monitor_mem_bar.pack(side=tk.LEFT, padx=5)
     def setup_auth_tab(self):
         tab = self.auth_tab
-        f1 = ttk.LabelFrame(tab, text="登录状态")
+        f1 = ttk.LabelFrame(tab, text="🔐 登录状态")
         f1.pack(fill=tk.X, pady=5, padx=5)
         r1 = ttk.Frame(f1)
         r1.pack(fill=tk.X, padx=5, pady=5)
         ttk.Label(r1, text="当前状态:").pack(side=tk.LEFT)
-        self.auth_status_label = tk.Label(r1, text=self.auth_status_value, fg="blue")
+        self.auth_status_label = tk.Label(r1, text=self.auth_status_value, fg="#2563eb")
         self.auth_status_label.pack(side=tk.LEFT, padx=5)
 
-        f4 = ttk.LabelFrame(tab, text="正版登录")
+        f4 = ttk.LabelFrame(tab, text="🔑 正版登录")
         f4.pack(fill=tk.X, pady=5, padx=5)
         r4 = ttk.Frame(f4)
         r4.pack(fill=tk.X, padx=5, pady=5)
@@ -8834,7 +9042,7 @@ class MinecraftLauncher:
         ttk.Button(r4, text="📝 手动输入 Token", command=self.manual_token_login).pack(side=tk.LEFT, padx=5)
         ttk.Button(r4, text="🔄 刷新令牌", command=self.refresh_auth_token).pack(side=tk.LEFT, padx=5)
         ttk.Button(r4, text="🚪 退出登录", command=self.logout_auth).pack(side=tk.LEFT, padx=5)
-        f2 = ttk.LabelFrame(tab, text="登录方式")
+        f2 = ttk.LabelFrame(tab, text="📋 登录方式")
         f2.pack(fill=tk.X, pady=5, padx=5)
         r2 = ttk.Frame(f2)
         r2.pack(fill=tk.X, padx=5, pady=5)
@@ -8843,16 +9051,16 @@ class MinecraftLauncher:
         self.microsoft_radio = ttk.Radiobutton(r2, text="Microsoft 正版登录", value="microsoft", command=self.on_login_mode_change)
         self.microsoft_radio.pack(side=tk.LEFT, padx=5)
         
-        f3 = ttk.LabelFrame(tab, text="离线设置")
+        f3 = ttk.LabelFrame(tab, text="🧑 离线设置")
         f3.pack(fill=tk.X, pady=5, padx=5)
         r3 = ttk.Frame(f3)
         r3.pack(fill=tk.X, padx=5, pady=5)
         ttk.Label(r3, text="玩家名称:").pack(side=tk.LEFT)
         self.username_entry = ttk.Entry(r3, width=25)
         self.username_entry.pack(side=tk.LEFT, padx=5)
-        tk.Label(r3, text="(离线模式使用)", fg="gray").pack(side=tk.LEFT, padx=5)
+        tk.Label(r3, text="(离线模式使用)", fg="#5c6b7a").pack(side=tk.LEFT, padx=5)
         
-        f5a = ttk.LabelFrame(tab, text="多账户切换")
+        f5a = ttk.LabelFrame(tab, text="👥 多账户切换")
         f5a.pack(fill=tk.X, pady=5, padx=5)
         r5a = ttk.Frame(f5a)
         r5a.pack(fill=tk.X, padx=5, pady=5)
@@ -8864,7 +9072,7 @@ class MinecraftLauncher:
         ttk.Button(r5a, text="删除", command=self.delete_saved_account).pack(side=tk.LEFT, padx=3)
         ttk.Button(r5a, text="刷新列表", command=self.refresh_account_list).pack(side=tk.LEFT, padx=3)
         self.refresh_account_list()
-        f5 = ttk.LabelFrame(tab, text="账号信息")
+        f5 = ttk.LabelFrame(tab, text="📋 账号信息")
         f5.pack(fill=tk.BOTH, expand=True, pady=5, padx=5)
         r5 = ttk.Frame(f5)
         r5.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
@@ -9137,7 +9345,7 @@ class MinecraftLauncher:
             d,
             text="⚠️ 危险操作 ⚠️",
             font=("Microsoft YaHei", 14, "bold"),
-            fg="red"
+            fg="#dc2626"
         ).pack(pady=(15, 5))
 
         tk.Label(
@@ -9764,7 +9972,7 @@ class MinecraftLauncher:
         e = ttk.Entry(d, width=30)
         e.pack(pady=5)
         e.insert(0, "1.20.1")
-        tk.Label(d, text="例如: 1.20.1, 1.19.4, 1.16.5", fg="gray").pack(pady=2)
+        tk.Label(d, text="例如: 1.20.1, 1.19.4, 1.16.5", fg="#5c6b7a").pack(pady=2)
         def start():
             v = e.get().strip()
             if not v:
@@ -9783,7 +9991,7 @@ class MinecraftLauncher:
         e = ttk.Entry(d, width=30)
         e.pack(pady=5)
         e.insert(0, "24w14a")
-        tk.Label(d, text="例如: 24w14a, 23w04a, 1.20-pre1", fg="gray").pack(pady=2)
+        tk.Label(d, text="例如: 24w14a, 23w04a, 1.20-pre1", fg="#5c6b7a").pack(pady=2)
         def start():
             v = e.get().strip()
             if not v:
@@ -9802,8 +10010,8 @@ class MinecraftLauncher:
         e = ttk.Entry(d, width=30)
         e.pack(pady=5)
         e.insert(0, "24w14potato")
-        tk.Label(d, text="例如: 24w14potato, 23w13a_or_b, 22w13oneblockatatime", fg="gray").pack(pady=2)
-        tk.Label(d, text="💡 愚人节版是 Mojang 每年愚人节发布的搞笑版本", fg="gray").pack(pady=2)
+        tk.Label(d, text="例如: 24w14potato, 23w13a_or_b, 22w13oneblockatatime", fg="#5c6b7a").pack(pady=2)
+        tk.Label(d, text="💡 愚人节版是 Mojang 每年愚人节发布的搞笑版本", fg="#5c6b7a").pack(pady=2)
         def start():
             v = e.get().strip()
             if not v:
